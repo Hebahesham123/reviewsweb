@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Share Your Experience</title>
+<style>
+  body { background:#fffaf5; margin:0; }
+  .review-form-container {
+    max-width: 800px; margin: 40px auto; padding: 28px;
+    background: linear-gradient(to bottom, #fff7ed, #ffffff);
+    border-radius: 12px; box-shadow: 0 6px 18px rgba(249,115,22,.15);
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+  .review-form-title { text-align:center; color:#7c2d12; font-size:28px; font-weight:700; margin-bottom:6px; }
+  .review-form-subtitle { text-align:center; font-size:15px; color:#9a3412; margin-bottom:24px; }
+  .submit-button {
+    background-color:#f97316; border:none; border-radius:8px; color:#fff; cursor:pointer;
+    font-size:16px; font-weight:600; padding:12px 24px; margin-top:20px; width:100%;
+  }
+  .submit-button:hover { background-color:#ea580c; }
+  .submit-button:disabled { background-color:#fdba74; cursor:not-allowed; }
+  .form-group { margin-bottom:20px; }
+  .form-group > label { font-weight:600; color:#7c2d12; margin-bottom:8px; display:block; }
+  .rating-box { border:1px solid #fed7aa; background-color:#fff7ed; border-radius:10px; padding:16px; margin-bottom:16px; }
+  .star-rating-ui { display:flex; flex-direction:row-reverse; justify-content:flex-start; gap:6px; }
+  .star-rating-ui input { display:none; }
+  .star-rating-ui label { font-size:28px; cursor:pointer; color:transparent; transition:transform .2s ease; -webkit-text-stroke:1px #eab308; }
+  .star-rating-ui input:checked ~ label,
+  .star-rating-ui label:hover,
+  .star-rating-ui label:hover ~ label { color:#eab308; transform:scale(1.1); }
+  .star-rating-ui label::before { content:"★"; }
+  .experience-options { display:flex; gap:10px; margin-top:8px; }
+  .experience-options input { display:none; }
+  .experience-options label {
+    padding:8px 18px; border:2px solid #fed7aa; border-radius:30px; background-color:#fff7ed;
+    color:#7c2d12; font-weight:500; font-size:14px; cursor:pointer; transition:all .3s ease;
+  }
+  .experience-options input:checked + label { background-color:#f97316; border-color:#f97316; color:#fff; }
+  textarea, input[type="text"] { width:100%; padding:10px; border-radius:6px; border:1px solid #fed7aa; font-size:14px; font-family:inherit; box-sizing:border-box; }
+
+  #thank-you-page { display:none; text-align:center; padding:60px 20px; animation:fadeIn .6s ease; }
+  #thank-you-page .thank-icon { font-size:72px; margin-bottom:16px; animation:pop .6s ease; }
+  #thank-you-page h2 { color:#7c2d12; font-size:30px; font-weight:700; margin-bottom:10px; }
+  #thank-you-page p { color:#9a3412; font-size:16px; margin-bottom:24px; }
+  #thank-you-page .countdown { color:#f97316; font-weight:600; font-size:14px; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes pop { 0% { transform:scale(.5); opacity:0;} 70% { transform:scale(1.15); opacity:1;} 100% { transform:scale(1);} }
+</style>
+</head>
+<body>
+<div class="review-form-container">
+  <!-- FORM VIEW -->
+  <div id="form-view">
+    <h2 class="review-form-title">Share Your Experience</h2>
+    <p class="review-form-subtitle">Tell us how your journey was with us ✨</p>
+
+    <form id="product-review-form">
+      <div class="form-group">
+        <label for="reviewer_name">Your Name *</label>
+        <input type="text" name="reviewer_name" id="reviewer_name" required>
+      </div>
+
+      <div class="form-group rating-box">
+        <label>Product Quality</label>
+        <div class="star-rating-ui">
+          <input type="radio" name="product_rating" id="pq5" value="5"><label for="pq5"></label>
+          <input type="radio" name="product_rating" id="pq4" value="4"><label for="pq4"></label>
+          <input type="radio" name="product_rating" id="pq3" value="3"><label for="pq3"></label>
+          <input type="radio" name="product_rating" id="pq2" value="2"><label for="pq2"></label>
+          <input type="radio" name="product_rating" id="pq1" value="1"><label for="pq1"></label>
+        </div>
+      </div>
+
+      <div class="form-group rating-box">
+        <label>Shipping Experience</label>
+        <div class="star-rating-ui">
+          <input type="radio" name="shipping_rating" id="sh5" value="5"><label for="sh5"></label>
+          <input type="radio" name="shipping_rating" id="sh4" value="4"><label for="sh4"></label>
+          <input type="radio" name="shipping_rating" id="sh3" value="3"><label for="sh3"></label>
+          <input type="radio" name="shipping_rating" id="sh2" value="2"><label for="sh2"></label>
+          <input type="radio" name="shipping_rating" id="sh1" value="1"><label for="sh1"></label>
+        </div>
+      </div>
+
+      <div class="form-group rating-box">
+        <label>Customer Support</label>
+        <div class="star-rating-ui">
+          <input type="radio" name="support_rating" id="cs5" value="5"><label for="cs5"></label>
+          <input type="radio" name="support_rating" id="cs4" value="4"><label for="cs4"></label>
+          <input type="radio" name="support_rating" id="cs3" value="3"><label for="cs3"></label>
+          <input type="radio" name="support_rating" id="cs2" value="2"><label for="cs2"></label>
+          <input type="radio" name="support_rating" id="cs1" value="1"><label for="cs1"></label>
+        </div>
+      </div>
+
+      <div class="form-group rating-box">
+        <label>Shopping Experience</label>
+        <div class="experience-options">
+          <input type="radio" name="experience_level" id="easy" value="Easy"><label for="easy">Easy</label>
+          <input type="radio" name="experience_level" id="medium" value="Medium"><label for="medium">Medium</label>
+          <input type="radio" name="experience_level" id="hard" value="Hard"><label for="hard">Hard</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="review_comment">Your Comment (optional)</label>
+        <textarea id="review_comment" name="review_comment" rows="4"></textarea>
+      </div>
+
+      <button type="submit" class="submit-button">Submit Review</button>
+    </form>
+  </div>
+
+  <!-- THANK YOU VIEW -->
+  <div id="thank-you-page">
+    <div class="thank-icon">🧡</div>
+    <h2>Thank You!</h2>
+    <p>Your review has been submitted successfully.<br>We truly appreciate your feedback ✨</p>
+    <div class="countdown">Returning to the form in <span id="countdown-number">5</span> seconds...</div>
+  </div>
+</div>
+
+<!-- Supabase client (UMD build from CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ⚠️ These are your PUBLIC project URL + anon key — safe to expose in the browser.
+  // Row Level Security on the "reviews" table is what protects your data.
+  const SUPABASE_URL = "https://vumykpkjirjhdtwlpzwe.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1bXlrcGtqaXJqaGR0d2xwendlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTczMzQsImV4cCI6MjA5Nzg3MzMzNH0.sJLzH45T_Muox5Lc_zXU6nyw2r4Ea6IrT0zPZt70L8k";
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('product-review-form');
+  const formView = document.getElementById('form-view');
+  const thankYou = document.getElementById('thank-you-page');
+  const countdownNumber = document.getElementById('countdown-number');
+  const submitBtn = form.querySelector('.submit-button');
+
+  const numOrNull = (v) => (v === null || v === "" ? null : Number(v));
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    const data = new FormData(form);
+    const payload = {
+      reviewer_name: (data.get('reviewer_name') || '').toString().trim(),
+      product_rating: numOrNull(data.get('product_rating')),
+      shipping_rating: numOrNull(data.get('shipping_rating')),
+      support_rating: numOrNull(data.get('support_rating')),
+      experience_level: data.get('experience_level') || null,
+      review_comment: ((data.get('review_comment') || '').toString().trim()) || null,
+    };
+
+    const { error } = await client.from('reviews').insert(payload);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit Review";
+
+    if (error) {
+      alert('There was a problem submitting your review: ' + error.message);
+      return;
+    }
+
+    // Hide form, show thank-you page
+    formView.style.display = 'none';
+    thankYou.style.display = 'block';
+    form.reset();
+
+    // Countdown timer
+    let seconds = 5;
+    countdownNumber.textContent = seconds;
+    const interval = setInterval(() => {
+      seconds--;
+      countdownNumber.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        thankYou.style.display = 'none';
+        formView.style.display = 'block';
+        countdownNumber.textContent = 5;
+      }
+    }, 1000);
+  });
+</script>
+</body>
+</html>
