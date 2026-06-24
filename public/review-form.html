@@ -57,8 +57,8 @@
 
     <form id="product-review-form">
       <div class="form-group">
-        <label for="reviewer_name">Your Name *</label>
-        <input type="text" name="reviewer_name" id="reviewer_name" required>
+        <label for="reviewer_name">Your Name</label>
+        <input type="text" name="reviewer_name" id="reviewer_name" placeholder="Leave blank to stay anonymous">
       </div>
 
       <div class="form-group rating-box">
@@ -131,6 +131,12 @@
 
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Fake Egyptian names used when the reviewer leaves the name blank.
+  const EG_FIRST = ["Ahmed","Mohamed","Mahmoud","Mostafa","Omar","Youssef","Khaled","Hassan","Amr","Tarek","Karim","Sherif","Ali","Ibrahim","Hossam","Tamer","Ramy","Wael","Sameh","Adel","Ayman","Hany","Magdy","Mariam","Nour","Habiba","Salma","Farida","Malak","Hana","Layla","Yasmin","Nada","Aya","Esraa","Mai","Dina","Heba","Mona","Rana","Reem","Sara","Amira","Menna","Doaa","Shaimaa","Eman","Asmaa","Noha","Dalia","Hala","Nourhan","Aliaa"];
+  const EG_LAST = ["Hassan","Mohamed","Ibrahim","Mahmoud","Abdelrahman","Farouk","Mansour","Saad","Adel","Gamal","Fathy","Zaki","Sabry","Shawky","Nabil","Fawzy","Lotfy","Helmy","Refaat","ElSayed","AbdelAziz","Kamel","Naguib","Hegazy","Sorour"];
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const randomEgyptianName = () => pick(EG_FIRST) + " " + pick(EG_LAST);
+
   const form = document.getElementById('product-review-form');
   const formView = document.getElementById('form-view');
   const thankYou = document.getElementById('thank-you-page');
@@ -146,7 +152,7 @@
 
     const data = new FormData(form);
     const payload = {
-      reviewer_name: (data.get('reviewer_name') || '').toString().trim(),
+      reviewer_name: ((data.get('reviewer_name') || '').toString().trim()) || randomEgyptianName(),
       product_rating: numOrNull(data.get('product_rating')),
       shipping_rating: numOrNull(data.get('shipping_rating')),
       support_rating: numOrNull(data.get('support_rating')),

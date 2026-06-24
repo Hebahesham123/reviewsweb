@@ -71,8 +71,8 @@
 
     <form id="rvw-form">
       <div class="rvw-group">
-        <label for="rvw-name">Your Name *</label>
-        <input type="text" name="reviewer_name" id="rvw-name" required>
+        <label for="rvw-name">Your Name</label>
+        <input type="text" name="reviewer_name" id="rvw-name" placeholder="Leave blank to stay anonymous">
       </div>
 
       <div class="rvw-group rvw-box">
@@ -141,6 +141,11 @@
     var SUPABASE_URL = "https://vumykpkjirjhdtwlpzwe.supabase.co";
     var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1bXlrcGtqaXJqaGR0d2xwendlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTczMzQsImV4cCI6MjA5Nzg3MzMzNH0.sJLzH45T_Muox5Lc_zXU6nyw2r4Ea6IrT0zPZt70L8k";
 
+    var EG_FIRST = ["Ahmed","Mohamed","Mahmoud","Mostafa","Omar","Youssef","Khaled","Hassan","Amr","Tarek","Karim","Sherif","Ali","Ibrahim","Hossam","Tamer","Ramy","Wael","Sameh","Adel","Ayman","Hany","Magdy","Mariam","Nour","Habiba","Salma","Farida","Malak","Hana","Layla","Yasmin","Nada","Aya","Esraa","Mai","Dina","Heba","Mona","Rana","Reem","Sara","Amira","Menna","Doaa","Shaimaa","Eman","Asmaa","Noha","Dalia","Hala","Nourhan","Aliaa"];
+    var EG_LAST = ["Hassan","Mohamed","Ibrahim","Mahmoud","Abdelrahman","Farouk","Mansour","Saad","Adel","Gamal","Fathy","Zaki","Sabry","Shawky","Nabil","Fawzy","Lotfy","Helmy","Refaat","ElSayed","AbdelAziz","Kamel","Naguib","Hegazy","Sorour"];
+    function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function randomEgyptianName() { return pick(EG_FIRST) + " " + pick(EG_LAST); }
+
     function init() {
       if (!window.supabase || !window.supabase.createClient) return;
       var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -161,7 +166,7 @@
 
         var data = new FormData(form);
         var payload = {
-          reviewer_name: (data.get('reviewer_name') || '').toString().trim(),
+          reviewer_name: ((data.get('reviewer_name') || '').toString().trim()) || randomEgyptianName(),
           product_rating: numOrNull(data.get('product_rating')),
           shipping_rating: numOrNull(data.get('shipping_rating')),
           support_rating: numOrNull(data.get('support_rating')),
