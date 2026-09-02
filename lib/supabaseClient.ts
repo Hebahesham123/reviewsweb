@@ -20,4 +20,8 @@ export type Review = {
   experience_level: "Easy" | "Medium" | "Hard" | null;
   review_comment: string | null;
   created_at: string;
+  /** Set when the reviewer arrived via a personalised ?cid= link (sent by n8n). */
+  customer_id: string | null;
+  order_number: string | null;
+  customer_email: string | null;
 };

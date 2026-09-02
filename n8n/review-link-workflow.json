@@ -1,0 +1,162 @@
+{
+  "name": "Beauty Bareg — Send review link",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f4cac442-9153-41ed-b22f-150ae40e8d48",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-review-link",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-200, 300],
+      "webhookId": "f4cac442-9153-41ed-b22f-150ae40e8d48"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Builds the personalised review link + the message to send.\n// Change this one line if your review page lives somewhere else:\nconst BASE = 'https://beauty-bareg.net/pages/reviews';\n\nconst clean = (v) => (v === undefined || v === null) ? '' : String(v).trim();\n\nconst out = [];\n\nfor (const item of $input.all()) {\n  // Webhook node puts the POSTed JSON under .body\n  const b = item.json.body || item.json;\n\n  const name  = clean(b.name || b.customer_name || b.first_name);\n  const email = clean(b.email || b.customer_email);\n  const order = clean(b.order_number || b.order || b.order_id);\n  const lang  = (clean(b.lang || b.language) || 'ar').toLowerCase();\n\n  // ---- the id that ends up next to the name on the dashboard ----\n  // Priority: explicit id  →  order number  →  error.\n  let cid = clean(b.customer_id || b.cid || b.id);\n  if (!cid && order) cid = 'ORD-' + order.replace(/[^A-Za-z0-9_-]/g, '');\n  if (!cid) {\n    throw new Error('Nothing to identify the customer with. Send customer_id or order_number.');\n  }\n  cid = cid.slice(0, 64);\n\n  const link = BASE + '?cid=' + encodeURIComponent(cid);\n\n  // ---- phone → WhatsApp format (digits only, Egypt default) ----\n  let phone = clean(b.phone || b.whatsapp || b.customer_phone).replace(/\\D/g, '');\n  if (phone.startsWith('00')) phone = phone.slice(2);\n  if (phone.startsWith('0'))  phone = '20' + phone.slice(1);   // 01xxxxxxxxx → 201xxxxxxxxx\n\n  // ---- how to send it ----\n  const channel = (clean(b.channel) || (phone ? 'whatsapp' : email ? 'email' : 'link')).toLowerCase();\n\n  // ---- message text ----\n  const hi = lang === 'en'\n    ? (name ? 'Hi ' + name + ',' : 'Hi,')\n    : (name ? 'أهلاً ' + name + '،' : 'أهلاً،');\n\n  const message = lang === 'en'\n    ? hi + '\\n\\nThank you for your order' + (order ? ' #' + order : '') + ' from Beauty Bareg 🧡\\n'\n       + \"We'd love to hear how it went — it takes less than a minute:\\n\" + link\n    : hi + '\\n\\nشكراً لطلبك' + (order ? ' رقم ' + order : '') + ' من Beauty Bareg 🧡\\n'\n       + 'ياريت تقيّم تجربتك معانا، مش هياخد منك دقيقة:\\n' + link;\n\n  const subject = lang === 'en'\n    ? 'How was your Beauty Bareg order?'\n    : 'إزاي كانت تجربتك مع Beauty Bareg؟';\n\n  out.push({\n    json: { customer_id: cid, name, email, phone, order_number: order, lang, channel, link, subject, message }\n  });\n}\n\nreturn out;"
+      },
+      "id": "build-review-link",
+      "name": "Build link + message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [20, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "is-whatsapp",
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "whatsapp",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "whatsapp"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "is-email",
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "email",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "email"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "link only"
+        }
+      },
+      "id": "route-by-channel",
+      "name": "Route by channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $vars.WA_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.WA_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.phone, type: 'text', text: { preview_url: true, body: $json.message } }) }}",
+        "options": {}
+      },
+      "id": "send-whatsapp",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 140]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@beauty-bareg.net",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, customer_id: $('Build link + message').item.json.customer_id, link: $('Build link + message').item.json.link, channel: $('Build link + message').item.json.channel, message: $('Build link + message').item.json.message }) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Respond with link",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [780, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Build link + message", "type": "main", "index": 0 }]]
+    },
+    "Build link + message": {
+      "main": [[{ "node": "Route by channel", "type": "main", "index": 0 }]]
+    },
+    "Route by channel": {
+      "main": [
+        [{ "node": "Send WhatsApp", "type": "main", "index": 0 }],
+        [{ "node": "Send Email", "type": "main", "index": 0 }],
+        [{ "node": "Respond with link", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send WhatsApp": {
+      "main": [[{ "node": "Respond with link", "type": "main", "index": 0 }]]
+    },
+    "Send Email": {
+      "main": [[{ "node": "Respond with link", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

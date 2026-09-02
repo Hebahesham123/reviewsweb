@@ -53,7 +53,14 @@ export default function DashboardPage() {
     return reviews.filter((r) => {
       const name = displayName(r.reviewer_name, r.id).toLowerCase();
       const comment = (r.review_comment || "").toLowerCase();
-      return name.includes(q) || comment.includes(q);
+      const cid = (r.customer_id || "").toLowerCase();
+      const order = (r.order_number || "").toLowerCase();
+      return (
+        name.includes(q) ||
+        comment.includes(q) ||
+        cid.includes(q) ||
+        order.includes(q)
+      );
     });
   }, [reviews, query]);
 
@@ -82,7 +89,7 @@ export default function DashboardPage() {
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Search by name or comment…"
+            placeholder="Search by name, ID, order or comment…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -142,6 +149,14 @@ export default function DashboardPage() {
                         <span className="reviewer-name">
                           {name}
                           {isFake && <span className="anon-dot" title="No name provided" />}
+                          {r.customer_id && (
+                            <span
+                              className="cid-chip"
+                              title={`Submitted from a personalised link · ID ${r.customer_id}`}
+                            >
+                              {r.customer_id}
+                            </span>
+                          )}
                         </span>
                       </div>
                     </td>
@@ -265,6 +280,8 @@ function formatDate(iso: string) {
 function exportCsv(reviews: Review[]) {
   const headers = [
     "Name",
+    "Customer ID",
+    "Order Number",
     "Product Rating",
     "Shipping Rating",
     "Support Rating",
@@ -282,6 +299,8 @@ function exportCsv(reviews: Review[]) {
   const rows = reviews.map((r) =>
     [
       displayName(r.reviewer_name, r.id),
+      r.customer_id ?? "",
+      r.order_number ?? "",
       r.product_rating ?? "",
       r.shipping_rating ?? "",
       r.support_rating ?? "",

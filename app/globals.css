@@ -506,6 +506,22 @@ input[type="text"]:focus {
   background: #d1d5db;
 }
 
+/* Customer id carried in from the personalised ?cid= review link */
+.cid-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 30px;
+  background: #ffedd5;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  cursor: help;
+}
+
 .cell-date {
   color: #9ca3af;
   font-size: 12px;

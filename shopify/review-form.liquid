@@ -22,6 +22,11 @@
     }
     #rvw-app .rvw-title { text-align:center; color:#7c2d12; font-size:28px; font-weight:700; margin:0 0 6px; }
     #rvw-app .rvw-subtitle { text-align:center; font-size:15px; color:#9a3412; margin:0 0 24px; }
+    #rvw-app .rvw-linked { text-align:center; margin:-16px 0 20px; font-size:12px; color:#9a3412; }
+    #rvw-app .rvw-linked b {
+      background:#ffedd5; border:1px solid #fed7aa; border-radius:30px; padding:3px 10px;
+      font-family:ui-monospace,Menlo,monospace; letter-spacing:.2px;
+    }
     #rvw-app .rvw-btn {
       background-color:#f97316; border:none; border-radius:8px; color:#fff; cursor:pointer;
       font-size:16px; font-weight:600; padding:12px 24px; margin-top:20px; width:100%;
@@ -65,6 +70,7 @@
   <div id="rvw-form-view">
     <h2 class="rvw-title">Share Your Experience</h2>
     <p class="rvw-subtitle">Tell us how your journey was with us ✨</p>
+    <p id="rvw-linked" class="rvw-linked" style="display:none"></p>
 
     <form id="rvw-form">
       <div class="rvw-group">
@@ -144,6 +150,32 @@
     function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
     function randomEgyptianName() { return pick(EG_FIRST) + " " + pick(EG_LAST); }
 
+    // ---- customer id carried in by the personalised review link ----
+    // Accepts:  ?cid=ORD-1042   ?customer_id=…   #ORD-1042   /pages/reviews/ORD-1042
+    // Stored in sessionStorage so a reload or theme redirect doesn't lose it.
+    function getCustomerId() {
+      try {
+        var q = new URLSearchParams(window.location.search);
+        var v = q.get('cid') || q.get('customer_id') || q.get('customerId') || q.get('id');
+
+        if (!v) {
+          var h = (window.location.hash || '').replace(/^#/, '').trim();
+          if (/^[A-Za-z0-9_.-]{3,}$/.test(h)) v = h;
+        }
+        if (!v) {
+          var m = window.location.pathname.match(/\/pages\/[^\/]+\/([^\/?#]+)/i);
+          if (m && m[1]) v = decodeURIComponent(m[1]);
+        }
+
+        if (v && v.trim()) {
+          v = v.trim().slice(0, 64);
+          try { sessionStorage.setItem('rvw_cid', v); } catch (e) {}
+          return v;
+        }
+        try { return sessionStorage.getItem('rvw_cid') || null; } catch (e) { return null; }
+      } catch (e) { return null; }
+    }
+
     function init() {
       var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       var form = document.getElementById('rvw-form');
@@ -152,6 +184,17 @@
       var thanks = document.getElementById('rvw-thanks');
       var countNum = document.getElementById('rvw-count-num');
       var btn = form.querySelector('.rvw-btn');
+
+      // Show the customer that their order is linked (textContent = no HTML injection).
+      var customerId = getCustomerId();
+      var linked = document.getElementById('rvw-linked');
+      if (customerId && linked) {
+        linked.appendChild(document.createTextNode('Linked to your order '));
+        var tag = document.createElement('b');
+        tag.textContent = customerId;
+        linked.appendChild(tag);
+        linked.style.display = 'block';
+      }
 
       function numOrNull(v) { return (v === null || v === "") ? null : Number(v); }
 
@@ -166,7 +209,8 @@
           shipping_rating: numOrNull(data.get('shipping_rating')),
           support_rating: numOrNull(data.get('support_rating')),
           experience_level: data.get('experience_level') || null,
-          review_comment: ((data.get('review_comment') || '').toString().trim()) || null
+          review_comment: ((data.get('review_comment') || '').toString().trim()) || null,
+          customer_id: customerId
         };
 
         var res = await client.from('reviews').insert(payload);
