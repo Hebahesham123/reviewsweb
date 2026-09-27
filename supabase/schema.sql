@@ -17,15 +17,23 @@ create table if not exists public.reviews (
   -- (https://…/pages/reviews?cid=ORD-1042). Shown next to the name on the dashboard.
   customer_id     text,
   order_number    text,
-  customer_email  text
+  customer_email  text,
+
+  -- Collected by the public form: phone is required, the photo is optional.
+  -- See add-phone-order-photo.sql, which also creates the storage bucket.
+  phone           text,
+  image_url       text
 );
 
 -- If the table already exists, add the identity columns:
 alter table public.reviews add column if not exists customer_id    text;
 alter table public.reviews add column if not exists order_number   text;
 alter table public.reviews add column if not exists customer_email text;
+alter table public.reviews add column if not exists phone          text;
+alter table public.reviews add column if not exists image_url      text;
 
 create index if not exists reviews_customer_id_idx on public.reviews (customer_id);
+create index if not exists reviews_phone_idx       on public.reviews (phone);
 
 -- Enable Row Level Security
 alter table public.reviews enable row level security;

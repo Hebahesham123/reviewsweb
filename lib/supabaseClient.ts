@@ -23,5 +23,9 @@ export type Review = {
   /** Set when the reviewer arrived via a personalised ?cid= link (sent by n8n). */
   customer_id: string | null;
   order_number: string | null;
+  /** Required on the public form; normalised to +20... before it is stored. */
+  phone: string | null;
+  /** Public URL in the review-images storage bucket, when a photo was attached. */
+  image_url: string | null;
   customer_email: string | null;
 };
