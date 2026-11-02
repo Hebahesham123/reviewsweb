@@ -1,3 +1,5 @@
+import { titleCase } from "./titleCase";
+
 // Egyptian display names used when a review has no name yet.
 // On the dashboard we derive the name deterministically from the review id,
 // so the same review always shows the same name (it won't flicker on refresh).
@@ -41,6 +43,6 @@ export function displayName(
   name: string | null | undefined,
   seed: string
 ): string {
-  const trimmed = (name ?? "").trim();
+  const trimmed = titleCase((name ?? "").trim());
   return trimmed || egyptianNameFromSeed(seed);
 }

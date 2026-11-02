@@ -113,7 +113,7 @@
 
     <form id="rvw-form" novalidate>
       <div class="rvw-group">
-        <label for="rvw-name">Your Name <span class="rvw-opt">optional</span></label>
+        <label for="rvw-name">Your Name <span class="rvw-opt">Optional</span></label>
         <input type="text" name="reviewer_name" id="rvw-name" autocomplete="name"
                placeholder="Leave blank to stay anonymous">
       </div>
@@ -128,7 +128,7 @@
         </div>
 
         <div class="rvw-group">
-          <label for="rvw-order">Order ID <span class="rvw-opt">optional</span></label>
+          <label for="rvw-order">Order ID <span class="rvw-opt">Optional</span></label>
           <input type="text" name="order_number" id="rvw-order" placeholder="e.g. 1042">
           <p class="rvw-hint">You'll find it in your confirmation email.</p>
         </div>
@@ -177,16 +177,16 @@
       </div>
 
       <div class="rvw-group">
-        <label for="rvw-comment">Your Comment <span class="rvw-opt">optional</span></label>
+        <label for="rvw-comment">Your Comment <span class="rvw-opt">Optional</span></label>
         <textarea id="rvw-comment" name="review_comment" rows="4"></textarea>
       </div>
 
       <div class="rvw-group">
-        <label>Add a Photo <span class="rvw-opt">optional</span></label>
+        <label>Add A Photo <span class="rvw-opt">Optional</span></label>
         <div class="rvw-file">
           <input type="file" id="rvw-photo" accept="image/*">
-          <label for="rvw-photo" class="rvw-file-btn">📷 Choose a photo</label>
-          <span class="rvw-file-name" id="rvw-file-name">No photo chosen</span>
+          <label for="rvw-photo" class="rvw-file-btn">📷 Choose A Photo</label>
+          <span class="rvw-file-name" id="rvw-file-name">No Photo Chosen</span>
         </div>
         <div class="rvw-preview" id="rvw-preview" style="display:none">
           <img id="rvw-preview-img" alt="Your selected photo">
@@ -222,6 +222,27 @@
     var EG_LAST = ["Hassan","Mohamed","Ibrahim","Mahmoud","Abdelrahman","Farouk","Mansour","Saad","Adel","Gamal","Fathy","Zaki","Sabry","Shawky","Nabil","Fawzy","Lotfy","Helmy","Refaat","ElSayed","AbdelAziz","Kamel","Naguib","Hegazy","Sorour"];
     function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
     function randomEgyptianName() { return pick(EG_FIRST) + " " + pick(EG_LAST); }
+
+    // ---- Title Case ----
+    // "heba hassan" -> "Heba Hassan".  Words break on whitespace and hyphens.
+    // Characters with no case (Arabic, digits, emoji) pass through untouched
+    // rather than absorbing the capital.
+    function titleCase(input) {
+      if (!input) return '';
+      return String(input).replace(/[^\s-]+/g, function (word) {
+        var capitalised = false;
+        var out = '';
+        for (var ch of word) {
+          if (!capitalised && ch.toLowerCase() !== ch.toUpperCase()) {
+            out += ch.toUpperCase();
+            capitalised = true;
+          } else {
+            out += capitalised ? ch.toLowerCase() : ch;
+          }
+        }
+        return out;
+      });
+    }
 
     // ---- customer id carried in by the personalised review link ----
     // Accepts:  ?cid=ORD-1042   ?customer_id=...   #ORD-1042   /pages/reviews/ORD-1042
@@ -317,7 +338,7 @@
         if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
         previewImg.removeAttribute('src');
         preview.style.display = 'none';
-        fileName.textContent = 'No photo chosen';
+        fileName.textContent = 'No Photo Chosen';
         showError(photoError, '');
       }
 
@@ -402,14 +423,14 @@
         }
 
         var payload = {
-          reviewer_name: ((data.get('reviewer_name') || '').toString().trim()) || randomEgyptianName(),
+          reviewer_name: titleCase((data.get('reviewer_name') || '').toString().trim()) || randomEgyptianName(),
           phone: phone,
           order_number: ((data.get('order_number') || '').toString().trim()).slice(0, 64) || null,
           product_rating: numOrNull(data.get('product_rating')),
           shipping_rating: numOrNull(data.get('shipping_rating')),
           support_rating: numOrNull(data.get('support_rating')),
           experience_level: data.get('experience_level') || null,
-          review_comment: ((data.get('review_comment') || '').toString().trim()) || null,
+          review_comment: titleCase((data.get('review_comment') || '').toString().trim()) || null,
           customer_id: customerId,
           image_url: imageUrl
         };

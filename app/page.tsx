@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, type Review } from "@/lib/supabaseClient";
 import { displayName } from "@/lib/egyptianNames";
+import { titleCase } from "@/lib/titleCase";
 
 /* ------------------------------- types ------------------------------- */
 
@@ -32,36 +33,36 @@ const RATING_FIELDS: { key: RatingField; label: string }[] = [
 
 const RATING_OPTIONS: { value: RatingFilter; label: string }[] = [
   { value: "any", label: "Any" },
-  { value: "5", label: "5 ★ only" },
-  { value: "4up", label: "4 ★ & up" },
-  { value: "3up", label: "3 ★ & up" },
-  { value: "2dn", label: "2 ★ & below" },
-  { value: "1", label: "1 ★ only" },
-  { value: "none", label: "Not rated" },
+  { value: "5", label: "5 ★ Only" },
+  { value: "4up", label: "4 ★ & Up" },
+  { value: "3up", label: "3 ★ & Up" },
+  { value: "2dn", label: "2 ★ & Below" },
+  { value: "1", label: "1 ★ Only" },
+  { value: "none", label: "Not Rated" },
 ];
 
 const DATE_PRESETS: { value: DatePreset; label: string }[] = [
-  { value: "all", label: "All time" },
+  { value: "all", label: "All Time" },
   { value: "today", label: "Today" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "90d", label: "Last 90 days" },
-  { value: "month", label: "This month" },
-  { value: "custom", label: "Custom range" },
+  { value: "7d", label: "Last 7 Days" },
+  { value: "30d", label: "Last 30 Days" },
+  { value: "90d", label: "Last 90 Days" },
+  { value: "month", label: "This Month" },
+  { value: "custom", label: "Custom Range" },
 ];
 
 const EXPERIENCE_OPTIONS = [
   { value: "Easy", label: "Easy" },
   { value: "Medium", label: "Medium" },
   { value: "Hard", label: "Hard" },
-  { value: NO_EXPERIENCE, label: "Not set" },
+  { value: NO_EXPERIENCE, label: "Not Set" },
 ];
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "newest", label: "Newest first" },
-  { value: "oldest", label: "Oldest first" },
-  { value: "highest", label: "Highest rated" },
-  { value: "lowest", label: "Lowest rated" },
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
+  { value: "highest", label: "Highest Rated" },
+  { value: "lowest", label: "Lowest Rated" },
   { value: "name-asc", label: "Name A → Z" },
   { value: "name-desc", label: "Name Z → A" },
 ];
@@ -198,6 +199,8 @@ export default function DashboardPage() {
 
   // photo being viewed full size
   const [lightbox, setLightbox] = useState<Review | null>(null);
+  // comment being read in full
+  const [commentView, setCommentView] = useState<Review | null>(null);
 
   // view
   const [sort, setSort] = useState<SortKey>("newest");
@@ -397,15 +400,18 @@ export default function DashboardPage() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  // Escape closes the photo viewer.
+  // Escape closes the photo viewer and the comment window.
   useEffect(() => {
-    if (!lightbox) return;
+    if (!lightbox && !commentView) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "Escape") {
+        setLightbox(null);
+        setCommentView(null);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox]);
+  }, [lightbox, commentView]);
 
   const pageStart = (page - 1) * pageSize;
   const visible = sorted.slice(pageStart, pageStart + pageSize);
@@ -580,7 +586,7 @@ export default function DashboardPage() {
             disabled={sorted.length === 0}
             title="Exports every row matching the current filters"
           >
-            ⬇ Export {isFiltered ? "filtered" : "all"}
+            ⬇ Export {isFiltered ? "Filtered" : "All"}
           </button>
         </div>
       </div>
@@ -589,7 +595,7 @@ export default function DashboardPage() {
         <div className="filter-panel">
           <div className="filter-grid">
             <div className="filter-group">
-              <label className="filter-label">Date range</label>
+              <label className="filter-label">Date Range</label>
               <select
                 value={datePreset}
                 onChange={(e) => setDatePreset(e.target.value as DatePreset)}
@@ -623,7 +629,7 @@ export default function DashboardPage() {
 
             {RATING_FIELDS.map(({ key, label }) => (
               <div className="filter-group" key={key}>
-                <label className="filter-label">{label} rating</label>
+                <label className="filter-label">{label} Rating</label>
                 <select
                   value={ratings[key]}
                   onChange={(e) =>
@@ -643,7 +649,7 @@ export default function DashboardPage() {
             ))}
 
             <div className="filter-group filter-group-wide">
-              <label className="filter-label">Shopping experience</label>
+              <label className="filter-label">Shopping Experience</label>
               <div className="chip-row">
                 {EXPERIENCE_OPTIONS.map((o) => {
                   const on = experiences.includes(o.value);
@@ -694,7 +700,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">Reviewer name</label>
+              <label className="filter-label">Reviewer Name</label>
               <Segmented
                 value={named}
                 onChange={setNamed}
@@ -735,7 +741,7 @@ export default function DashboardPage() {
             </button>
           ))}
           <button className="clear-all" onClick={resetAll}>
-            Clear all
+            Clear All
           </button>
         </div>
       )}
@@ -752,7 +758,7 @@ export default function DashboardPage() {
         <div className="empty-state">
           <p>No reviews match these filters.</p>
           <button className="export-btn" onClick={resetAll}>
-            Clear all filters
+            Clear All Filters
           </button>
         </div>
       ) : (
@@ -844,9 +850,13 @@ export default function DashboardPage() {
                       </td>
                       <td className="cell-comment">
                         {r.review_comment ? (
-                          <span title={r.review_comment}>
-                            {r.review_comment}
-                          </span>
+                          <button
+                            className="comment-btn"
+                            onClick={() => setCommentView(r)}
+                            title="Read Full Comment"
+                          >
+                            {titleCase(r.review_comment)}
+                          </button>
                         ) : (
                           <span className="muted">—</span>
                         )}
@@ -936,7 +946,7 @@ export default function DashboardPage() {
             </div>
 
             <label className="select-wrap">
-              <span className="select-label">Per page</span>
+              <span className="select-label">Per Page</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
@@ -986,6 +996,46 @@ export default function DashboardPage() {
             <a href={lightbox.image_url} target="_blank" rel="noreferrer">
               Open original ↗
             </a>
+          </div>
+        </div>
+      )}
+
+      {commentView?.review_comment && (
+        <div
+          className="comment-overlay"
+          onClick={() => setCommentView(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full Comment"
+        >
+          <div className="comment-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="comment-modal-head">
+              <div className="reviewer">
+                <Avatar
+                  name={displayName(commentView.reviewer_name, commentView.id)}
+                />
+                <div className="reviewer-info">
+                  <span className="reviewer-name">
+                    {displayName(commentView.reviewer_name, commentView.id)}
+                  </span>
+                  <span className="reviewer-meta">
+                    {formatDate(commentView.created_at)}
+                    {commentView.order_number &&
+                      ` · Order ${commentView.order_number}`}
+                  </span>
+                </div>
+              </div>
+              <button
+                className="comment-modal-close"
+                onClick={() => setCommentView(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="comment-modal-body">
+              {titleCase(commentView.review_comment)}
+            </p>
           </div>
         </div>
       )}
@@ -1132,7 +1182,7 @@ function exportCsv(reviews: Review[]) {
       r.shipping_rating ?? "",
       r.support_rating ?? "",
       r.experience_level ?? "",
-      r.review_comment ?? "",
+      titleCase(r.review_comment),
       r.image_url ?? "",
       new Date(r.created_at).toISOString(),
     ]
